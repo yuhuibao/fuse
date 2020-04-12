@@ -5,12 +5,12 @@
 #include "inode.h"
 #include "util.h"
 
-const int INODE_COUNT = 256;
+const int INODE_COUNT = 100;
 
 inode*
 get_inode(int inum)
 {
-    uint8_t* base = (uint8_t*) pages_get_page(0);
+    uint8_t* base = (uint8_t*) pages_get_page(1);
     inode* nodes = (inode*)(base);
     return &(nodes[inum]);
 }
@@ -18,11 +18,10 @@ get_inode(int inum)
 int
 alloc_inode()
 {
+    void* ibm = get_inode_bitmap();
     for (int ii = 1; ii < INODE_COUNT; ++ii) {
-        inode* node = get_inode(ii);
-        if (node->mode == 0) {
-            memset(node, 0, sizeof(inode));
-            node->mode = 010644;
+        if (!bitmap_get(ibm, ii)) {
+            bitmap_put(ibm, ii, 1);
             printf("+ alloc_inode() -> %d\n", ii);
             return ii;
         }

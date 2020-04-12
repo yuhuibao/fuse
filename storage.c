@@ -120,8 +120,8 @@ storage_mknod(const char* path, int mode)
     strcpy(tmp2, path);
 
     const char* name = path + 1;
-
-    if (directory_lookup(name) != -ENOENT) {
+    inode* dd = get_inode(2);
+    if (directory_lookup(dd,name) != -ENOENT) {
         printf("mknod fail: already exist\n");
         return -EEXIST;
     }
@@ -133,7 +133,7 @@ storage_mknod(const char* path, int mode)
 
     printf("+ mknod create %s [%04o] - #%d\n", path, mode, inum);
 
-    return directory_put(name, inum);
+    return directory_put(dd,name, inum);
 }
 
 slist*
