@@ -76,7 +76,7 @@ directory_put(inode* dd, const char* name, int inum)
     int dir_count = dd->size / sizeof(dirent);
     char* end = directory_get(dir_count,pnum);
     dirent* ent = (dirent*)end;
-    ent->name = name;
+    strcpy(ent->name, name);
     ent->inum = inum; 
 
     inode* node = get_inode(inum);
