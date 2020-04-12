@@ -22,7 +22,7 @@
 void
 directory_init()
 {
-    inode* rn = get_inode(1);
+    inode* rn = get_inode(2);
 
     if (rn->mode == 0) {
         rn->size = 0;
@@ -31,19 +31,27 @@ directory_init()
 }
 
 char*
-directory_get(int ii)
+directory_get(int ii, int pnum)
 {
-    char* base = pages_get_page(1);
-    return base + ii*ENT_SIZE;
+    char* base = pages_get_page(pnum);
+    return base + ii*sizeof(dirent);
 }
 
 int
-directory_lookup(const char* name)
+directory_lookup(inode* dd, const char* name)
 {
-    for (int ii = 0; ii < 256; ++ii) {
-        char* ent = directory_get(ii);
-        if (streq(ent, name)) {
-            return ii;
+    int pnum = dd->ptrs[0];
+    int dir_count = dd->size / sizeof(dirent);
+    for (int ii = 0; ii < dir_count; ++ii) {
+        dirent* ent = (dirent*)directory_get(ii,pnum);
+        if (streq(ent->name, name)) {
+            dd = get_inode(ent->inum);
+            if(dd->mode & 0x40){
+                const char* dir_name = name + strlen(ent->name) + 1;
+                directory_lookup(dd,dir_name);
+            }else{
+                return ent->inum;
+            }
         }
     }
     return -ENOENT;
@@ -58,15 +66,18 @@ tree_lookup(const char* path)
         return 1;
     }
 
-    return directory_lookup(path + 1);
+    return directory_lookup(get_inode(2),path + 1);
 }
 
 int
-directory_put(const char* name, int inum)
+directory_put(inode* dd, const char* name, int inum)
 {
-    char* ent = pages_get_page(1) + inum*ENT_SIZE;
-    strlcpy(ent, name, ENT_SIZE);
-    printf("+ dirent = '%s'\n", ent);
+    int pnum = dd->ptrs[0];
+    int dir_count = dd->size / sizeof(dirent);
+    char* end = directory_get(dir_count,pnum);
+    dirent* ent = (dirent*)end;
+    ent->name = name;
+    ent->inum = inum; 
 
     inode* node = get_inode(inum);
     printf("+ directory_put(..., %s, %d) -> 0\n", name, inum);

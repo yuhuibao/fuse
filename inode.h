@@ -4,11 +4,12 @@
 #include "pages.h"
 
 typedef struct inode {
-    int mode; // permission & type; zero for unused
+    int refs; // reference count
+    int mode; // permission & type
     int size; // bytes
-    // inode #x always uses data page #x
+    int ptrs[2]; // direct pointers
+    int iptr; // single indirect pointer
 } inode;
-
 void print_inode(inode* node);
 inode* get_inode(int inum);
 int alloc_inode();
