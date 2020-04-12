@@ -48,7 +48,7 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     rv = storage_stat(path, &st);
     assert(rv == 0);
 
-    filler(buf, ".", &st, 0);
+    filler(buf, ".", &st, 0); 
 
     slist* items = storage_list("/");
     for (slist* xs = items; xs != 0; xs = xs->next) {

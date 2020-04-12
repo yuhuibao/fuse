@@ -106,7 +106,7 @@ directory_list(const char* path)
     printf("+ directory_list()\n");
     slist* ys = 0;
 
-    char* name = path + 1;
+    const char* name = path + 1;
     inode* node = get_inode(2);
     directory_lookup(node,name);
     //after calling directory lookup node is the current directory
@@ -115,7 +115,7 @@ directory_list(const char* path)
     for (int ii = 0; ii < dir_count; ++ii) {
         dirent* ent = (dirent*)directory_get(ii,pnum);
         if (ent) {
-            //printf(" - %d: %s [%d]\n", ii, ent, ii);
+            printf(" - %d: %s [%d]\n", ii, ent->name, ii);
             ys = s_cons(ent->name, ys);
         }
     }
@@ -123,14 +123,4 @@ directory_list(const char* path)
     return ys;
 }
 
-void
-print_directory(inode* dd)
-{
-    printf("Contents:\n");
-    slist* items = directory_list(dd);
-    for (slist* xs = items; xs != 0; xs = xs->next) {
-        printf("- %s\n", xs->data);
-    }
-    printf("(end of contents)\n");
-    s_free(items);
-}
+
