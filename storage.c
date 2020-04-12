@@ -135,7 +135,18 @@ storage_mknod(const char* path, int mode)
 
     return directory_put(dd,name, inum);
 }
-
+/*int
+storage_mkdir(const char* path, int mode)
+{
+    const char* name = path + 1;
+    //start lookup in root directory
+    inode* dd = get_inode(2);
+    if (directory_lookup(dd,name) != -ENOENT) {
+        printf("mknod fail: already exist\n");
+        return -EEXIST;
+    }
+}
+*/
 slist*
 storage_list(const char* path)
 {

@@ -44,7 +44,7 @@ directory_lookup(inode* dd, const char* name)
     int dir_count = dd->size / sizeof(dirent);
     for (int ii = 0; ii < dir_count; ++ii) {
         dirent* ent = (dirent*)directory_get(ii,pnum);
-        if (streq(ent->name, name)) {
+        if (ent!=NULL && streq(ent->name, name)) {
             dd = get_inode(ent->inum);
             if(dd->mode & 0x40){
                 const char* dir_name = name + strlen(ent->name) + 1;
@@ -87,11 +87,11 @@ directory_put(inode* dd, const char* name, int inum)
 }
 
 int
-directory_delete(const char* name)
+directory_delete(inode* dd,const char* name)
 {
     printf(" + directory_delete(%s)\n", name);
 
-    int inum = directory_lookup(name);
+    int inum = directory_lookup(dd,name);
     free_inode(inum);
 
     char* ent = pages_get_page(1) + inum*ENT_SIZE;
@@ -101,16 +101,22 @@ directory_delete(const char* name)
 }
 
 slist*
-directory_list()
+directory_list(const char* path)
 {
     printf("+ directory_list()\n");
     slist* ys = 0;
 
-    for (int ii = 0; ii < 256; ++ii) {
-        char* ent = directory_get(ii);
-        if (ent[0]) {
-            printf(" - %d: %s [%d]\n", ii, ent, ii);
-            ys = s_cons(ent, ys);
+    char* name = path + 1;
+    inode* node = get_inode(2);
+    directory_lookup(node,name);
+    //after calling directory lookup node is the current directory
+    int pnum = node->ptrs[0];
+    int dir_count = node->size / sizeof(dirent);
+    for (int ii = 0; ii < dir_count; ++ii) {
+        dirent* ent = (dirent*)directory_get(ii,pnum);
+        if (ent) {
+            //printf(" - %d: %s [%d]\n", ii, ent, ii);
+            ys = s_cons(ent->name, ys);
         }
     }
 
