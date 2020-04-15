@@ -107,7 +107,7 @@ nufs_link(const char *from, const char *to)
 int
 nufs_rmdir(const char *path)
 {
-    int rv = -1;
+    int rv = storage_rmdir(path);
     printf("rmdir(%s) -> %d\n", path, rv);
     return rv;
 }

@@ -212,7 +212,6 @@ int storage_mkdir(const char *path, int mode)
     inode *node = get_inode(inum);
     node->mode = mode + 040000;
     node->size = 0;
-    node->ptrs[0] = alloc_page();
 
     printf("+ mkdir create %s [%04o] - #%d\n", path, mode, inum);
 
@@ -234,7 +233,17 @@ int storage_unlink(const char *path)
     const char *name = path + 1;
     return directory_delete(name);
 }
-
+int storage_rmdir(const char* path){
+    const char *name = path + 1;
+    int inum = directory_lookup(name);
+    inode* node = get_inode(inum);
+    if(node->mode & 040000){
+        if(node->ptrs[0]){
+            return -ENOTEMPTY;
+        }
+    }
+    return directory_delete(name);
+}
 int storage_link(const char *from, const char *to)
 {
     return -ENOENT;
