@@ -14,6 +14,7 @@
 
 #include "pages.h"
 #include "util.h"
+#include "bitmap.h"
 
 const int PAGE_COUNT = 256;
 const int NUFS_SIZE  = 4096 * 256; // 1MB
@@ -40,10 +41,12 @@ pages_init(const char* path, int create)
     assert(pages_base != MAP_FAILED);
 
     // third page used for bitmap
-    
-    char* pbase = (char*)pages_base + 2*4096;
+    void* pbm = get_pages_bitmap();
+    bitmap_put(pbm,0,1);
+    bitmap_put(pbm, 2, 1);
+    /* char* pbase = (char*)pages_base + 2*4096;
     if(create)
-        memset(pbase,0,4096);
+        memset(pbase,0,4096); */
 }
 
 void
@@ -69,4 +72,28 @@ get_inode_bitmap()
 {
     uint8_t* page = pages_get_page(2);
     return (void*)(page + 32);
+}
+
+int
+alloc_page()
+{
+    void* pbm = get_pages_bitmap();
+
+    for (int ii = 1; ii < PAGE_COUNT; ++ii) {
+        if (!bitmap_get(pbm, ii)) {
+            bitmap_put(pbm, ii, 1);
+            printf("+ alloc_page() -> %d\n", ii);
+            return ii;
+        }
+    }
+
+    return -1;
+}
+
+void
+free_page(int pnum)
+{
+    printf("+ free_page(%d)\n", pnum);
+    void* pbm = get_pages_bitmap();
+    bitmap_put(pbm, pnum, 0);
 }

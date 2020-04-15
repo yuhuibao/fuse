@@ -121,10 +121,37 @@ int storage_write(const char *path, const char *buf, size_t size, off_t offset)
     }
 
     inode *node = get_inode(inum);
-    uint8_t *data = pages_get_page(inum);
-    printf("+ writing to page: %d\n", inum);
-    memcpy(data + offset, buf, size);
-
+    
+    if (offset + size <= 4096)
+    {
+        int pnum = inode_get_pnum(node, 0);
+        uint8_t *data = pages_get_page(pnum);
+        printf(" + writing to page: %d\n", pnum);
+        memcpy(data + offset, buf, size);
+    }
+    else
+    {
+        int fpn_start, fpn_end;
+        fpn_start = offset / 4096;
+        int pnum_start = inode_get_pnum(node, fpn_start);
+        uint8_t *data_s = pages_get_page(pnum_start);
+        printf(" + writing to page: %d at %d\n", fpn_start, pnum_start);
+        memcpy(data_s + offset % 4096, buf, 4096 - offset % 4096);
+        int num_mid = fpn_end - fpn_start - 1;
+        for (int i = 0; i < num_mid; i++)
+        {
+            int fpn_i = fpn_start + i + 1;
+            int pnum_i = inode_get_pnum(node, fpn_i);
+            uint8_t *data = pages_get_page(pnum_i);
+            printf(" + writing to page: %d at %d\n", fpn_i, pnum_i);
+            memcpy(data, buf, 4096);
+        }
+        fpn_end = (offset + size) / 4096;
+        int pnum_end = inode_get_pnum(node, fpn_end);
+        uint8_t *data_e = pages_get_page(pnum_end);
+        printf(" + writing to page: %d at %d\n", fpn_end, pnum_end);
+        memcpy(data_e, buf, size - 4096 - offset % 4096 - 4096 * num_mid);
+    }
     return size;
 }
 
@@ -170,7 +197,9 @@ slist*
 storage_list(const char *path)
 {
  
-    return directory_list(path);
+    slist* s=directory_list(path);
+    printf("s is %p\n",s);
+    return s;
     
 }
 

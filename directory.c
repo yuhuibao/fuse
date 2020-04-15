@@ -16,8 +16,9 @@
 #include "slist.h"
 #include "util.h"
 #include "inode.h"
+#include "bitmap.h"
 
-#define DIRENT_COUNT 128
+#define DIRENT_COUNT_MAX 128
 
 void
 directory_init()
@@ -31,6 +32,9 @@ directory_init()
         
         rn->size = 0;
         rn->mode = 040755;
+        rn->ptrs[0] = 1;
+        void* pbm = get_pages_bitmap();
+        bitmap_put(pbm,1,1);
         //printf("mode for inode %d is %d\n",inum,rn->mode);
     }
 }
@@ -45,7 +49,9 @@ directory_get(int ii)
 int
 directory_lookup(const char* name)
 {
-    for (int ii = 0; ii < DIRENT_COUNT; ++ii) {
+    inode* root = get_inode(0);
+    int dirent_count = root->size/32;
+    for (int ii = 0; ii < dirent_count; ++ii) {
         dirent* ent = directory_get(ii);
         if (streq(ent->name, name)) {
             return ent->inum;
@@ -72,7 +78,7 @@ directory_put(const char* name, int inum)
     char* base = pages_get_page(1);
     inode* root = get_inode(0);
     //add new dirent at the end
-    char* new = base + root->size * sizeof(dirent);
+    char* new = base + root->size/32 * sizeof(dirent);
     dirent* ent = (dirent*) new;
     strcpy(ent->name, name);
     ent->inum = inum;
@@ -105,8 +111,9 @@ directory_list()
 {
     printf("+ directory_list()\n");
     slist* ys = 0;
-
-    for (int ii = 0; ii < DIRENT_COUNT; ++ii) {
+    inode* root = get_inode(0);
+    int dirent_count = root->size/32;
+    for (int ii = 0; ii < dirent_count; ++ii) {
         dirent* ent = directory_get(ii);
         if (ent && ent->name[0]) {
             printf(" - %d: %s [%d]\n", ii, ent->name, ii);

@@ -57,10 +57,26 @@ print_inode(inode* node)
 int
 inode_get_pnum(inode* node, int fpn)
 {
-    if(fpn==0 || fpn==1){
-        return node->ptrs[fpn];
+    if(fpn==0){
+        if(node->ptrs[0] == 0){
+
+            node->ptrs[0] = alloc_page();
+        }
+        return node->ptrs[0];
+    }
+    if(fpn==1){
+        if(node->ptrs[1] == 0){
+            node->ptrs[1] = alloc_page();
+        }
+        return node->ptrs[1];
+    }
+    if(node->iptr == 0){
+        node->iptr = alloc_page();
     }
     uint8_t* indirect = pages_get_page(node->iptr);
     int* arr_pnum = (int*)indirect;
+    if(arr_pnum[fpn-2]==0){
+        arr_pnum[fpn-2]=alloc_page();
+    }
     return arr_pnum[fpn-2];
 }
