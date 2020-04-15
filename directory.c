@@ -22,11 +22,16 @@
 void
 directory_init()
 {
-    inode* rn = get_inode(1);
+    //inode for root is 0=inum
+    int inum = alloc_inode();
+    inode *rn = get_inode(inum); 
+    
 
     if (rn->mode == 0) {
+        
         rn->size = 0;
         rn->mode = 040755;
+        //printf("mode for inode %d is %d\n",inum,rn->mode);
     }
 }
 
@@ -55,8 +60,8 @@ tree_lookup(const char* path)
     assert(path[0] == '/');
 
     if (streq(path, "/")) {
-        return 1;
-    }
+        return 0;
+    } 
 
     return directory_lookup(path + 1);
 }

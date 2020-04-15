@@ -4,6 +4,7 @@
 #include "pages.h"
 #include "inode.h"
 #include "util.h"
+#include "bitmap.h"
 
 const int INODE_COUNT = 256;
 
@@ -18,11 +19,12 @@ get_inode(int inum)
 int
 alloc_inode()
 {
-    for (int ii = 1; ii < INODE_COUNT; ++ii) {
-        inode* node = get_inode(ii);
-        if (node->mode == 0) {
-            memset(node, 0, sizeof(inode));
-            node->mode = 010644;
+    void* ibm = get_inode_bitmap();
+    for (int ii = 0; ii < INODE_COUNT; ++ii) {
+        printf("ii: %d\n",bitmap_get(ibm,ii));
+        if (!bitmap_get(ibm,ii)) {
+            bitmap_put(ibm,ii,1);
+            printf("ii: %d\n",bitmap_get(ibm,ii));
             printf("+ alloc_inode() -> %d\n", ii);
             return ii;
         }
@@ -52,3 +54,13 @@ print_inode(inode* node)
     }
 }
 
+int
+inode_get_pnum(inode* node, int fpn)
+{
+    if(fpn==0 || fpn==1){
+        return node->ptrs[fpn];
+    }
+    uint8_t* indirect = pages_get_page(node->iptr);
+    int* arr_pnum = (int*)indirect;
+    return arr_pnum[fpn-2];
+}

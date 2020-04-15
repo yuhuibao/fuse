@@ -6,7 +6,10 @@
 typedef struct inode {
     int mode; // permission & type; zero for unused
     int size; // bytes
+    int refs; // reference count
     // inode #x always uses data page #x
+    int ptrs[2]; // direct pointers
+    int iptr; // single indirect pointer
 } inode;
 
 void print_inode(inode* node);

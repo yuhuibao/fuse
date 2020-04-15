@@ -39,9 +39,11 @@ pages_init(const char* path, int create)
     pages_base = mmap(0, NUFS_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, pages_fd, 0);
     assert(pages_base != MAP_FAILED);
 
-    // mark inode 0 as taken
-    char* pbase = (char*) pages_base;
-    pbase[0] = 1;
+    // third page used for bitmap
+    
+    char* pbase = (char*)pages_base + 2*4096;
+    if(create)
+        memset(pbase,0,4096);
 }
 
 void
@@ -56,4 +58,15 @@ pages_get_page(int pnum)
 {
     return pages_base + 4096 * pnum;
 }
-
+//put bitmap in block2
+void*
+get_pages_bitmap()
+{
+    return pages_get_page(2);
+}
+void*
+get_inode_bitmap()
+{
+    uint8_t* page = pages_get_page(2);
+    return (void*)(page + 32);
+}
