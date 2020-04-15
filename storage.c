@@ -193,6 +193,32 @@ int storage_mknod(const char *path, int mode)
     return directory_put(name, inum);
 }
 
+int storage_mkdir(const char *path, int mode)
+{
+    char *tmp1 = alloca(strlen(path));
+    char *tmp2 = alloca(strlen(path));
+    strcpy(tmp1, path);
+    strcpy(tmp2, path);
+
+    const char *name = path + 1;
+
+    if (directory_lookup(name) != -ENOENT)
+    {
+        printf("mknod fail: already exist\n");
+        return -EEXIST;
+    }
+
+    int inum = alloc_inode();
+    inode *node = get_inode(inum);
+    node->mode = mode + 040000;
+    node->size = 0;
+    node->ptrs[0] = alloc_page();
+
+    printf("+ mkdir create %s [%04o] - #%d\n", path, mode, inum);
+
+    return directory_put(name, inum);
+}
+
 slist*
 storage_list(const char *path)
 {
