@@ -23,5 +23,6 @@ int directory_delete(const char* name);
 slist* directory_list();
 void print_directory(inode* dd);
 dirent* directory_get(int ii);
+void ent_delete(int i, int length);
 #endif
 

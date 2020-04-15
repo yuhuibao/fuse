@@ -100,10 +100,31 @@ directory_delete(const char* name)
     int inum = directory_lookup(name);
     free_inode(inum);
 
-    char* ent = pages_get_page(1) + inum*16;
-    ent[0] = 0;
+    char* base = pages_get_page(1);
+    inode* root = get_inode(0);
+    int dirent_count = root->size/32;
+    char* ent;
+    for (int ii = 0; ii < dirent_count; ++ii) {
+        dirent* ent = (dirent*)(base + ii*sizeof(dirent));
+        if (streq(ent->name, name)) {
+            printf("delete dirent %s at index %d\n",name,ii);
+            ent_delete(ii,dirent_count);
+            root->size -= 32;
+            break;
+        }
+    }
 
     return 0;
+}
+void ent_delete(int i, int length){
+    char* base = pages_get_page(1);
+    dirent *ent0,*ent1;
+    for(int j = i+1; j < length; j++){
+        ent0 = (dirent*)(base + (j-1)*sizeof(dirent));
+        ent1 = (dirent*)(base + j*sizeof(dirent));
+        ent0->inum = ent1->inum;
+        strcpy(ent0->name,ent1->name);
+    }
 }
 
 slist*

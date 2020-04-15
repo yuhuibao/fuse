@@ -39,7 +39,22 @@ free_inode(int inum)
     printf("+ free_inode(%d)\n", inum);
 
     inode* node = get_inode(inum);
+    int num;
+    if(num = node->ptrs[0]){
+        free_page(num);
+    }
+    if(num = node->ptrs[1]){
+        free_page(num);
+    }
+    if(num = node->iptr){
+        free_page(num);
+    }
+    
+    
+    void* ibm = get_inode_bitmap();
+    bitmap_put(ibm,inum,0);
     memset(node, 0, sizeof(inode));
+
 }
 
 void
