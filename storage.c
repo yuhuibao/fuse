@@ -166,10 +166,12 @@ int storage_mknod(const char *path, int mode)
     return directory_put(name, inum);
 }
 
-slist *
+slist*
 storage_list(const char *path)
 {
+ 
     return directory_list(path);
+    
 }
 
 int storage_unlink(const char *path)

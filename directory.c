@@ -17,7 +17,7 @@
 #include "util.h"
 #include "inode.h"
 
-#define ENT_SIZE 16
+#define DIRENT_COUNT 128
 
 void
 directory_init()
@@ -35,20 +35,20 @@ directory_init()
     }
 }
 
-char*
+dirent*
 directory_get(int ii)
 {
     char* base = pages_get_page(1);
-    return base + ii*ENT_SIZE;
+    return (dirent*)(base + ii*sizeof(dirent));
 }
 
 int
 directory_lookup(const char* name)
 {
-    for (int ii = 0; ii < 256; ++ii) {
-        char* ent = directory_get(ii);
-        if (streq(ent, name)) {
-            return ii;
+    for (int ii = 0; ii < DIRENT_COUNT; ++ii) {
+        dirent* ent = directory_get(ii);
+        if (streq(ent->name, name)) {
+            return ent->inum;
         }
     }
     return -ENOENT;
@@ -69,9 +69,15 @@ tree_lookup(const char* path)
 int
 directory_put(const char* name, int inum)
 {
-    char* ent = pages_get_page(1) + inum*ENT_SIZE;
-    strlcpy(ent, name, ENT_SIZE);
-    printf("+ dirent = '%s'\n", ent);
+    char* base = pages_get_page(1);
+    inode* root = get_inode(0);
+    //add new dirent at the end
+    char* new = base + root->size * sizeof(dirent);
+    dirent* ent = (dirent*) new;
+    strcpy(ent->name, name);
+    ent->inum = inum;
+    printf("+ dirent = '%s', %d\n", ent->name,ent->inum);
+    root->size += 32;
 
     inode* node = get_inode(inum);
     printf("+ directory_put(..., %s, %d) -> 0\n", name, inum);
@@ -88,7 +94,7 @@ directory_delete(const char* name)
     int inum = directory_lookup(name);
     free_inode(inum);
 
-    char* ent = pages_get_page(1) + inum*ENT_SIZE;
+    char* ent = pages_get_page(1) + inum*16;
     ent[0] = 0;
 
     return 0;
@@ -100,14 +106,15 @@ directory_list()
     printf("+ directory_list()\n");
     slist* ys = 0;
 
-    for (int ii = 0; ii < 256; ++ii) {
-        char* ent = directory_get(ii);
-        if (ent[0]) {
-            printf(" - %d: %s [%d]\n", ii, ent, ii);
-            ys = s_cons(ent, ys);
+    for (int ii = 0; ii < DIRENT_COUNT; ++ii) {
+        dirent* ent = directory_get(ii);
+        if (ent && ent->name[0]) {
+            printf(" - %d: %s [%d]\n", ii, ent->name, ii);
+            ys = s_cons(ent->name, ys);
+            
         }
     }
-
+    printf("ys is %p\n",ys);
     return ys;
 }
 
