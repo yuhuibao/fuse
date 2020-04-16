@@ -20,6 +20,7 @@ int    storage_rmdir(const char* path);
 int    storage_link(const char *from, const char *to);
 int    storage_symlink(const char* target, const char* path);
 int    storage_readlink(const char* path, char* buf, size_t size);
+int    storage_chmod(const char* path, mode_t mode);
 int    storage_rename(const char *from, const char *to);
 int    storage_set_time(const char* path, const struct timespec ts[2]);
 slist* storage_list(const char* path);

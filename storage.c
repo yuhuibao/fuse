@@ -288,6 +288,20 @@ int storage_readlink(const char* path, char* buf, size_t size)
     return 0;
 }
 
+int storage_chmod(const char* path, mode_t mode)
+{
+    int inum = tree_lookup(path);
+    if (inum < 0)
+    {
+        return inum;
+    }
+    inode* node = get_inode(inum);
+    printf("chmode is %04o\n",mode);
+    node->mode = (node->mode & 0770000) + (mode & 0007777);
+    printf("new mode is %04o\n",node->mode);
+    return 0;
+
+}
 int storage_rename(const char *from, const char *to)
 {
     int inum = directory_lookup(from + 1);
