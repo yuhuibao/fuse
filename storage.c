@@ -26,7 +26,7 @@ void storage_init(const char *path, int create)
     pages_init(path, create);
     if (create)
     {
-        directory_init();
+        root_init();
     }
 }
 

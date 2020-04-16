@@ -21,6 +21,25 @@
 #define DIRENT_COUNT_MAX 128
 
 void
+root_init()
+{
+    //inode for root is 0=inum
+    int inum = alloc_inode();
+    inode *rn = get_inode(inum); 
+    
+
+    if (rn->mode == 0) {
+        
+        rn->size = 0;
+        rn->mode = 040755;
+        rn->ptrs[0] = 1;
+        void* pbm = get_pages_bitmap();
+        bitmap_put(pbm,1,1);
+        //printf("mode for inode %d is %d\n",inum,rn->mode);
+    }
+}
+
+void
 directory_init()
 {
     //inode for root is 0=inum
