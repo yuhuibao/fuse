@@ -89,6 +89,21 @@ nufs_mkdir(const char *path, mode_t mode)
 }
 
 int
+nufs_symlink(const char *target, const char *path)
+{
+    int rv = storage_symlink(target,path);
+    printf("create symlink %s\n",path);
+    return rv;
+}
+
+int 
+nufs_readlink(const char* path, char* buf, size_t size)
+{
+    int rv = storage_readlink(path, buf, size);
+    printf("read symlink %s\n",path);
+    return rv;
+}
+int
 nufs_unlink(const char *path)
 {
     int rv = storage_unlink(path);
@@ -210,6 +225,8 @@ nufs_init_ops(struct fuse_operations* ops)
     ops->write    = nufs_write;
     ops->utimens  = nufs_utimens;
     ops->ioctl    = nufs_ioctl;
+    ops->symlink  = nufs_symlink;
+    ops->readlink = nufs_readlink;
 };
 
 struct fuse_operations nufs_ops;

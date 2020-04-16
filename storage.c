@@ -235,6 +235,7 @@ int storage_unlink(const char *path)
     const char *name = path + 1;
     return directory_delete(name);
 }
+
 int storage_rmdir(const char* path){
     const char *name = path + 1;
     int inum = directory_lookup(name);
@@ -246,6 +247,7 @@ int storage_rmdir(const char* path){
     }
     return directory_delete(name);
 }
+
 int storage_link(const char *from, const char *to)
 {
     int inum = directory_lookup(from);
@@ -255,6 +257,34 @@ int storage_link(const char *from, const char *to)
     inode* node = get_inode(inum);
     node->refs += 1;
     directory_put(to, inum);
+    return 0;
+}
+
+int storage_symlink(const char* target, const char* path)
+{
+    int rv = storage_mknod(path,0120000);
+    if(rv < 0){
+        return rv;
+    }
+    int size = storage_write(path,target, strlen(target),0);
+    printf("write size is %d\n",size);
+    return 0;
+}
+
+int storage_readlink(const char* path, char* buf, size_t size)
+{
+    //printf("Here is storage_readlin\n");
+    int inum = tree_lookup(path);
+    if (inum < 0)
+    {
+        return inum;
+    }
+    inode* node = get_inode(inum);
+    int pnum = inode_get_pnum(node, 0);
+    uint8_t *data = pages_get_page(pnum);
+    printf(" + reading from page: %d\n", pnum);
+    memcpy(buf, data, size);
+    //buf[rv] = '\0';
     return 0;
 }
 
