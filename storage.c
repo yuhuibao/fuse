@@ -187,6 +187,7 @@ int storage_mknod(const char *path, int mode)
     inode *node = get_inode(inum);
     node->mode = mode;
     node->size = 0;
+    node->refs = 1;
 
     printf("+ mknod create %s [%04o] - #%d\n", path, mode, inum);
 
@@ -212,6 +213,7 @@ int storage_mkdir(const char *path, int mode)
     inode *node = get_inode(inum);
     node->mode = mode + 040000;
     node->size = 0;
+    node->refs = 1;
 
     printf("+ mkdir create %s [%04o] - #%d\n", path, mode, inum);
 
@@ -246,7 +248,14 @@ int storage_rmdir(const char* path){
 }
 int storage_link(const char *from, const char *to)
 {
-    return -ENOENT;
+    int inum = directory_lookup(from);
+    if(inum < 0){
+        return -ENOENT;
+    }
+    inode* node = get_inode(inum);
+    node->refs += 1;
+    directory_put(to, inum);
+    return 0;
 }
 
 int storage_rename(const char *from, const char *to)

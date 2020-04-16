@@ -98,7 +98,12 @@ directory_delete(const char* name)
     printf(" + directory_delete(%s)\n", name);
 
     int inum = directory_lookup(name);
-    free_inode(inum);
+    inode* node = get_inode(inum);
+    node->refs -= 1;
+    if(node->refs == 0){
+        free_inode(inum);
+    }
+    
 
     char* base = pages_get_page(1);
     inode* root = get_inode(0);
@@ -110,11 +115,11 @@ directory_delete(const char* name)
             printf("delete dirent %s at index %d\n",name,ii);
             ent_delete(ii,dirent_count);
             root->size -= 32;
-            break;
+            return 0;
         }
     }
 
-    return 0;
+    return -ENOENT;
 }
 void ent_delete(int i, int length){
     char* base = pages_get_page(1);
