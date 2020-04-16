@@ -47,6 +47,20 @@ directory_get(int ii)
 }
 
 int
+directory_rename(const char* from,const char* to)
+{
+    inode* root = get_inode(0);
+    int dirent_count = root->size/32;
+    for (int ii = 0; ii < dirent_count; ++ii) {
+        dirent* ent = directory_get(ii);
+        if (streq(ent->name, from)) {
+            strcpy(ent->name, to);
+            return 0;
+        }
+    }
+    return -ENOENT;
+}
+int
 directory_lookup(const char* name)
 {
     inode* root = get_inode(0);

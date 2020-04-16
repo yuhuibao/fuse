@@ -3,7 +3,11 @@
 
 #include <string.h>
 #include <stdlib.h>
-
+#include <time.h>
+/* static struct timespec {
+	time_t   tv_sec;        /* seconds */
+	long     tv_nsec;       /* nanoseconds */
+//}; */
 static int
 streq(const char* aa, const char* bb)
 {
@@ -71,7 +75,12 @@ assert_ok_real(long rv, const char* file, const int line)
         abort();
     }
 }
-
+static int
+time_now(struct timespec* time)
+{
+    int rv = clock_gettime(CLOCK_REALTIME, time);
+    return rv;
+}
 #define assert_ok(rv) assert_ok_real(rv, __FILE__, __LINE__)
 
 #endif

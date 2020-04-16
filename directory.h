@@ -24,5 +24,6 @@ slist* directory_list();
 void print_directory(inode* dd);
 dirent* directory_get(int ii);
 void ent_delete(int i, int length);
+int directory_rename(const char* from,const char* to);
 #endif
 

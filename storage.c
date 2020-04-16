@@ -188,6 +188,11 @@ int storage_mknod(const char *path, int mode)
     node->mode = mode;
     node->size = 0;
     node->refs = 1;
+    /* int rv = time_now(node->time);
+    if(rv){
+        return rv;
+    }
+    printf("timens([%ld, %ld; %ld %ld])\n",node->time->tv_sec,node->time->tv_nsec); */
 
     printf("+ mknod create %s [%04o] - #%d\n", path, mode, inum);
 
@@ -304,21 +309,13 @@ int storage_chmod(const char* path, mode_t mode)
 }
 int storage_rename(const char *from, const char *to)
 {
-    int inum = directory_lookup(from + 1);
-    if (inum < 0)
-    {
-        printf("mknod fail");
-        return inum;
-    }
+    int rv = directory_rename(from + 1, to + 1);
 
-    char *ent = directory_get(inum);
-    strlcpy(ent, to + 1, 16);
-
-    return 0;
+    return rv;
 }
 
 int storage_set_time(const char *path, const struct timespec ts[2])
 {
-    // Maybe we need space in a pnode for timestamps.
+    
     return 0;
 }

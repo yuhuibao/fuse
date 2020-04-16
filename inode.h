@@ -10,6 +10,8 @@ typedef struct inode {
     // inode #x always uses data page #x
     int ptrs[2]; // direct pointers
     int iptr; // single indirect pointer
+    struct timespec* time;
+    struct timespec* mtime;
 } inode;
 
 void print_inode(inode* node);
