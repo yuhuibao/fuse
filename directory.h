@@ -15,15 +15,15 @@ typedef struct dirent {
     
 } dirent;
 
-void directory_init();
+int directory_init(mode_t);
 void root_init();
-int directory_lookup( const char* name);
+int directory_lookup(inode* dd, const char* name);
 int tree_lookup(const char* path);
-int directory_put(const char* name, int inum);
+int directory_put(inode* dd, const char* name, int inum);
 int directory_delete(const char* name);
 slist* directory_list();
 void print_directory(inode* dd);
-dirent* directory_get(int ii);
+dirent* directory_get(inode* dd,int ii);
 void ent_delete(int i, int length);
 int directory_rename(const char* from,const char* to);
 #endif

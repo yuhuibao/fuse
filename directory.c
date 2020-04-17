@@ -39,10 +39,10 @@ root_init()
     }
 }
 
-void
-directory_init()
+int
+directory_init(mode_t mode)
 {
-    //inode for root is 0=inum
+    
     int inum = alloc_inode();
     inode *rn = get_inode(inum); 
     
@@ -50,18 +50,18 @@ directory_init()
     if (rn->mode == 0) {
         
         rn->size = 0;
-        rn->mode = 040755;
-        rn->ptrs[0] = 1;
-        void* pbm = get_pages_bitmap();
-        bitmap_put(pbm,1,1);
+        rn->mode = mode + 040000;
+        rn->refs = 1;
+        rn->ptrs[0] = alloc_page();
         //printf("mode for inode %d is %d\n",inum,rn->mode);
     }
+    return inum;
 }
 
 dirent*
-directory_get(int ii)
+directory_get(inode* dd, int ii)
 {
-    char* base = pages_get_page(1);
+    char* base = pages_get_page(dd->ptrs[0]);
     return (dirent*)(base + ii*sizeof(dirent));
 }
 
@@ -80,12 +80,12 @@ directory_rename(const char* from,const char* to)
     return -ENOENT;
 }
 int
-directory_lookup(const char* name)
+directory_lookup(inode* dd, const char* name)
 {
-    inode* root = get_inode(0);
-    int dirent_count = root->size/32;
+    //inode* root = get_inode(0);
+    int dirent_count = dd->size/32;
     for (int ii = 0; ii < dirent_count; ++ii) {
-        dirent* ent = directory_get(ii);
+        dirent* ent = directory_get(dd,ii);
         if (streq(ent->name, name)) {
             return ent->inum;
         }
@@ -106,17 +106,18 @@ tree_lookup(const char* path)
 }
 
 int
-directory_put(const char* name, int inum)
+directory_put(inode* dd, const char* name, int inum)
 {
-    char* base = pages_get_page(1);
-    inode* root = get_inode(0);
+    int pnum = dd->ptrs[0];
+    char* base = pages_get_page(pnum);
+    //inode* root = get_inode(0);
     //add new dirent at the end
-    char* new = base + root->size/32 * sizeof(dirent);
+    char* new = base + dd->size/32 * sizeof(dirent);
     dirent* ent = (dirent*) new;
     strcpy(ent->name, name);
     ent->inum = inum;
     printf("+ dirent = '%s', %d\n", ent->name,ent->inum);
-    root->size += 32;
+    dd->size += 32;
 
     inode* node = get_inode(inum);
     printf("+ directory_put(..., %s, %d) -> 0\n", name, inum);
@@ -180,7 +181,7 @@ directory_list()
             
         }
     }
-    printf("ys is %p\n",ys);
+    
     return ys;
 }
 

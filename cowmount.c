@@ -51,7 +51,7 @@ nufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     filler(buf, ".", &st, 0);
 
     slist* items = storage_list("/");
-    printf("items =  : %p\n",items);
+    //printf("items =  : %p\n",items);
     
     for (slist* xs = items; xs != 0; xs = xs->next) {
         printf("+ looking at path: '%s'\n", xs->data);

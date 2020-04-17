@@ -170,11 +170,13 @@ int storage_truncate(const char *path, off_t size)
 
 int storage_mknod(const char *path, int mode)
 {
-    char *tmp1 = alloca(strlen(path));
+    /* char *tmp1 = alloca(strlen(path));
     char *tmp2 = alloca(strlen(path));
     strcpy(tmp1, path);
     strcpy(tmp2, path);
-
+ */
+    slist* plist = s_split(path,'/');
+    
     const char *name = path + 1;
 
     if (directory_lookup(name) != -ENOENT)
@@ -198,6 +200,22 @@ int storage_mknod(const char *path, int mode)
 
     return directory_put(name, inum);
 }
+char* search_helper(slist* plist)
+{
+    plist = plist->next;
+    inode* parent = get_inode(0);
+    inode* find;
+    while(parent->mode & 0070000 == 0040000){
+        int inum = directory_lookup(parent,plist->data);
+        if(inum < 0){
+            return parent;
+        }
+        find = get_inode(inum);
+        parent = find;
+    }
+    
+    
+}
 
 int storage_mkdir(const char *path, int mode)
 {
@@ -214,13 +232,10 @@ int storage_mkdir(const char *path, int mode)
         return -EEXIST;
     }
 
-    int inum = alloc_inode();
-    inode *node = get_inode(inum);
-    node->mode = mode + 040000;
-    node->size = 0;
-    node->refs = 1;
+    int inum = directory_init(mode);
 
     printf("+ mkdir create %s [%04o] - #%d\n", path, mode, inum);
+    
 
     return directory_put(name, inum);
 }
@@ -230,7 +245,7 @@ storage_list(const char *path)
 {
  
     slist* s=directory_list(path);
-    printf("s is %p\n",s);
+    //printf("s is %p\n",s);
     return s;
     
 }

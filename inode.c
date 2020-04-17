@@ -21,10 +21,10 @@ alloc_inode()
 {
     void* ibm = get_inode_bitmap();
     for (int ii = 0; ii < INODE_COUNT; ++ii) {
-        printf("ii: %d\n",bitmap_get(ibm,ii));
+        //printf("ii: %d\n",bitmap_get(ibm,ii));
         if (!bitmap_get(ibm,ii)) {
             bitmap_put(ibm,ii,1);
-            printf("ii: %d\n",bitmap_get(ibm,ii));
+            //printf("ii: %d\n",bitmap_get(ibm,ii));
             printf("+ alloc_inode() -> %d\n", ii);
             return ii;
         }
